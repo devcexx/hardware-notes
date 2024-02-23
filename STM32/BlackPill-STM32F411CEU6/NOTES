@@ -1,0 +1,106 @@
+# Introduction
+
+This is a NOTES file for developing on the WeAct Studio MiniSTM32F4x1
+(a.k.a Black Pill) that uses a STM32F411CEU6 processor with Cortex-M4
+processor.
+
+This folder contains the following folders:
+
+ - NOTES: This file.  WeActStudio.MiniSTM32F4x1: Folder cloning the
+ - original repository, for future backup. Includes diagrams,
+ - bootloader, and some other useless, buggy, half-chinese translated
+ - software.
+
+# Main board components:
+
+ - PWR led connected directly to 3V3 rail.
+ - User led connected to PC13 (C13).
+ - User button connected to PA0 (A0).
+ - BOOT0 button. When unpressed, BOOT0 input is 0; when pressed, it switches to 1.
+ - NRST button, for resetting the board. Equivalent to put 1 in the R input.
+ - Processor, with Cortex-M4 single core @ 100 MHz with 512 KB flash.
+
+# Processor operation modes (booting the board)
+
+The mode in which the processor boots depends on the inputs BOOT0, BOOT1:
+
++---------------+----------------+
+| BOOT0 | BOOT1 | Operation mode |
++---------------+----------------+
+|   0   |   0   | Boots normally |
++---------------+----------------+
+|   0   |   1   | No idea        |
++---------------+----------------+
+|   1   |   0   | DFU Mode       |
++---------------+----------------+
+|   1   |   1   | No idea        |
++---------------+----------------+
+
+When processor boots normally, it executes the program defined at
+address 0x08000000. It can be either a bootloader, or directly the
+user program. If a bootloader is present, usually the first 16K of
+flash are left for the bootloader, and the program is burned at
+address 0x08004000.
+
+# Bootloader
+
+The board comes with a bootloader that supposedly should be able to
+allow programming through USB with Serial, even with the Arduino
+IDE.
+
+The bootloader is not open source, and the build images can be found
+here [2].  The bootloader is a fork from this [5] bootloader, modified
+the chinese way. The original bootloader should be able to work with
+this program [6], by sending a signal through the HID interface to
+open the USART port, and allow Arduino to directly program the
+device. The chinese version has its own CLI for uploading programs to
+the device, but the last time I tried, it segfaults everywhere, so it
+is useless.
+
+I didn't find any nice bootloader that can make quick developments
+quickier, so what I'm usually doing is to just burn my application in
+the place of the bootloader and run it normally, without any
+bootloader in between.
+
+# Programming the board
+
+There are three main ways:
+ - Throw ST-LINKV2 (connecting a ST-LINK device to the SW pins)
+ - Through USART1 (Don't really know how)
+ - Through USB (with DFU mode)
+
+Check video [4] for + info.
+
+## DFU Mode
+
+DFU Mode provides a way of programming the board through a
+hardware-based program that provides DFU access to the device through
+USB. That program cannot be deleted anyway, so there's no risk of
+bricking the processor.
+
+The device uses DfuSe, which is a variant of DFU protocol done by
+ST. It can be programmed with dfu-util regardless of that.
+
+As mentioned above, DFU mode can be entered putting BOOT0 (pressing
+the BOOT0 button) to 1 and resetting the board, once the USB device is
+detected by the system, BOOT0 can be released.
+
+**PLACING A 10K RESISTOR BETWEEN PA10 AND GND AND BETWEEN PA9 IS A
+  MUST FOR PROPERLY ENTERING DFU MODE WITH USB ENABLED **. These pins
+  corresponds to USART1, which is also used for programming the device
+  in DFU mode, but through serial (not really know how it
+  works). HOWEVER, IF THEY ARE KEPT FLOATING, ENTERING DFU MODE WITH
+  USB IS NOT RELIABLE. I suppose that the board tries to read
+  something from the USART1 to figure out if it should use USART or
+  USB for programming, and if random noise comes from the port, it can
+  make the usb to not be detected by the PC.
+
+
+# Links
+
+[1] Original repo: https://github.com/WeActStudio/WeActStudio.MiniSTM32F4x1/tree/master
+[2] Factory bootloader: https://github.com/WeActStudio/WeActStudio.MiniSTM32F4x1/tree/master/Soft/WeAct_HID_FW_Bootloader/Bootloader
+[3] Different ways of programming the board video reference: https://www.youtube.com/watch?v=KgjYJw_80DA
+[4] Purchase link (Official Aliexpress shop): https://es.aliexpress.com/item/1005005953179540.html
+[5] Original STM32, Arduino-compatible bootloader (doesn't work in this board): https://github.com/Serasidis/STM32_HID_Bootloader
+[6] STM32_HID_Bootloader hid-util CLI: https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/cli
