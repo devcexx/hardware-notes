@@ -15,7 +15,12 @@ This folder contains the following folders:
 
  - PWR led connected directly to 3V3 rail.
  - User led connected to PC13 (C13).
- - User button connected to PA0 (A0).
+ - User button connected to PA0 (A0). The button is connected as follows:
+ 
+       PA0 --> 330 Ohm resistor --> Push btn --> Ground
+
+   Because of this configuration, button can only work in pull-up mode.
+    
  - BOOT0 button. When unpressed, BOOT0 input is 0; when pressed, it switches to 1.
  - NRST button, for resetting the board. Equivalent to put 1 in the R input.
  - Processor, with Cortex-M4 single core @ 100 MHz with 512 KB flash.
@@ -95,6 +100,28 @@ detected by the system, BOOT0 can be released.
   USB for programming, and if random noise comes from the port, it can
   make the usb to not be detected by the PC.
 
+# Rust development
+
+## Required libraries
+
+- stm32f4: https://github.com/stm32-rs/stm32-rs: device-specific definitions
+- cortex-m: https://crates.io/crates/cortex-m
+- cortex-m-rt: Entry point for bare metal applications running in Cortex-M: https://crates.io/crates/cortex-m-rt
+
+## Rust target
+
+This is a Cortex-M4 processor with FPU, so thumbv7em-none-eabihf target is used.
+
+Other interesting Rust targets for other ARM processors, for reference:
+
++-------------------------+--------------------------------+
+|thumbv6m-none-eabi       |Cortex-M0 and Cortex-M0+        |
+|thumbv7m-none-eabi       |Cortex-M3                       |
+|thumbv7em-none-eabi      |Cortex-M4 and Cortex-M7 (no FPU)|
+|thumbv8m.base-none-eabi  |Cortex-M23                      |
+|thumbv8m.main-none-eabi  |Cortex-M33 (no FPU)             |
+|thumbv8m.main-none-eabihf|Cortex-M33                      |
++-------------------------+--------------------------------+
 
 # Links
 
