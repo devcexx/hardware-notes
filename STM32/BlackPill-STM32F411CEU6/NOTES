@@ -123,6 +123,29 @@ Other interesting Rust targets for other ARM processors, for reference:
 |thumbv8m.main-none-eabihf|Cortex-M33                      |
 +-------------------------+--------------------------------+
 
+# Clocks at a glance
+
+Refer to section 6.2 in STM31F411xC/E advanced manual for more information.
+
+When the processor boots up, it is by default using as clock source
+the HSI (High Speed Internal) clock, which provides a 16MHz
+pulse. However, the clock source and frequency can be changed by
+modifying different registers.
+
+In general, the processor can use three different sources as clock source:
+  - The HSI or High Speed Internal clock, which is a clock that runs
+    at 16 MHz.  It is supposed that it is not extremely precise, so
+    it could be better to use an external crystal.
+    
+ - The HSE (High Speed External), is an external crystal physically
+   connected to the processor, that must provide a clock source
+   between 4MHz and 26MHz. The BlackPill device provices a 25MHz one.
+   
+ - PLL (Phase-Locked loop), is a circuit that is able to generate a
+   pulse with a frequency higher to the input frequency.
+   Some extra explaination: https://electronics.stackexchange.com/a/514206.
+   The PLL can take as a source either the HSI or the HSE.
+
 # Links
 
 [1] Original repo: https://github.com/WeActStudio/WeActStudio.MiniSTM32F4x1/tree/master
