@@ -146,6 +146,28 @@ For manually pushing a program to the MCU via ST-LINKV2, follow these steps:
  - Extract the program from the ELF file as specified above.
  - Run the following command:
      st-flash --area=main write output.bin 0x08000000
+
+## ST-LINKV2 debugging with prints
+
+If you're using a ST-LINK device for uploading the program to the MCU,
+it may be also quite convenient to use the same link for printing
+debugging information, instead of using a separated USART device or
+whatever. This can be done using the ITM feature from Cortex processors.
+
+For doing this, you'll need to take 3 points into account:
+ - Setting up the ST-LINK device: ITM traces are sent through
+   a specific GPIO port, and received by the ST-LINK device
+   through the "SWO" pin, which might not be yet connected because
+   it is not required for debugging or uploading.
+   Make sure the SWO pin is connected to the port through ITM packets
+   are being emitted by the MCU (by default, in this board, is the B3 pin).
+ - Sending traces: the cortex_m has a println!-like macro for sending traces through
+   the ITM port, called iprint(ln)!. Use it for sending your traces.
+ - Receiving the prints. Seems that, for me, the easiest way of receiving prints
+   is using the STM32CubeProg application that can be downloaded from the ST official
+   webpage: https://www.st.com/en/development-tools/stm32cubeprog.html.
+
+See the itm_stm32 example for an example about how to send these traces.
  
 # Rust development
 

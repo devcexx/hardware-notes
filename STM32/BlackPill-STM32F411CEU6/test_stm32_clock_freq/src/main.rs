@@ -62,6 +62,8 @@ fn delay4() {
  * https://github.com/rust-embedded/cortex-m-quickstart
  *
 */
+
+// TODO There's something faulty on this example. Proceed with caution
 #[entry]
 fn main() -> ! {
     let dp = pac::Peripherals::take().unwrap();
@@ -124,11 +126,9 @@ fn main() -> ! {
     // led blinking is 1 second, then the configuration is correct.
     let mut delay = Delay::new(cortex.SYST, 100_000_000);
 
-    loop {
-        led.set_low();
-        delay.delay_ms(1000);
 
-        led.set_high();
+    loop {
+        led.toggle();
         delay.delay_ms(1000);
     }
 }
