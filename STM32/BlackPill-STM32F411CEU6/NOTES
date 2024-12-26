@@ -100,6 +100,53 @@ detected by the system, BOOT0 can be released.
   USB for programming, and if random noise comes from the port, it can
   make the usb to not be detected by the PC.
 
+### Uploading program using dfu-util
+
+For manually uploading a built ELF to the MCU follow these steps:
+ - Ensure you have the dfu utils installed on your system: `sudo pacman -S dfu-utils`
+ - Build and locate the ELF file.
+ - Extract the contents of the ELF sections to a binary file:
+     arm-none-eabi-objcopy -O binary <input elf> output.bin
+ - Upload the contents with dfu-util:
+     dfu-util -a 0 -s 0x08000000:leave -D output.bin
+
+     where:
+      - -a 0: specifies the Alt setting to locate the DFU section
+              in which the program is going to be burnt. You may use
+	      `dfu-util --list` to locate the proper value for this
+	      argument. You'll likely want to take alt of the interface
+	      that has the name "Internal Flash".
+	      
+      - -s ...: The DFuSe mode string, that specifies where the data is
+                going to be burnt, and some extra options, separated by :.
+		The leave option will make the MCU to jump into
+		application mode after the upload. You may take a look at
+		more extra mode options in dfu-util --help.
+
+      - -D output.bin: Specifies that you're going to upload the given
+                file to the MCU.
+
+
+## ST-LINKV2 programming
+
+The ST-LINKV2 protocol is a way of communicating with the MCU for
+multiple purposes, including debugging and flashing.
+
+This communication protocol requires buying an external ST-LINK
+compatible device and attach it to the MCU. I have this one at home
+[8], which is affordable, and more than enough for my use-case.
+
+If you're not working with a bootloader, using ST-LINK for uploading
+the program is quite useful, because it doesn't require the MCU to go
+into DFU mode beforehand. You just upload the binary file directly and
+that's it.
+
+For manually pushing a program to the MCU via ST-LINKV2, follow these steps:
+ - Ensure you have the ST-LINK tools installed on your system: `sudo pacman -S stlink`
+ - Extract the program from the ELF file as specified above.
+ - Run the following command:
+     st-flash --area=main write output.bin 0x08000000
+ 
 # Rust development
 
 ## Required libraries
@@ -122,6 +169,28 @@ Other interesting Rust targets for other ARM processors, for reference:
 |thumbv8m.main-none-eabi  |Cortex-M33 (no FPU)             |
 |thumbv8m.main-none-eabihf|Cortex-M33                      |
 +-------------------------+--------------------------------+
+
+## Uploading program through cargo
+
+### Using DFU
+
+There's an utility for cargo, called cargo-dfu, that allows to directly upload a
+program to the MCU. Follow these steps:
+
+ - Install cargo-dfu: cargo install cargo-dfu
+ - Ensure your MCU is in DFU mode.
+ - Run `cargo dfu`
+
+### Using ST-LINKV2
+
+probe-rs provides a cargo utility for flashing multiple kinds of MCUs,
+including STM32 via ST-LINK. Follow these steps in order to do so:
+
+ - Install probe-rs: cargo install probe-rs-tools.
+   (More info about installation here [9])
+ - Run the following command:
+     cargo flash --chip=STM32F411CE
+
 
 # Clocks at a glance
 
@@ -146,6 +215,9 @@ In general, the processor can use three different sources as clock source:
    Some extra explaination: https://electronics.stackexchange.com/a/514206.
    The PLL can take as a source either the HSI or the HSE.
 
+The STM32Cube software [7] can be used for visually understanding how
+clocks are connected and derived from each other.
+
 # Links
 
 [1] Original repo: https://github.com/WeActStudio/WeActStudio.MiniSTM32F4x1/tree/master
@@ -154,3 +226,6 @@ In general, the processor can use three different sources as clock source:
 [4] Purchase link (Official Aliexpress shop): https://es.aliexpress.com/item/1005005953179540.html
 [5] Original STM32, Arduino-compatible bootloader (doesn't work in this board): https://github.com/Serasidis/STM32_HID_Bootloader
 [6] STM32_HID_Bootloader hid-util CLI: https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/cli
+[7] STM32Cube config generator: https://www.st.com/en/development-tools/stm32cubemx.html
+[8] WeAct Mini debugger for STM32: https://es.aliexpress.com/item/1005005303809188.html
+[9] probe-rs install guide: https://probe.rs/docs/getting-started/installation/
